@@ -1,0 +1,14 @@
+# docker/requirements.txt
+# Liste des dépendances Python pour B'Craft'D Backend
+# Pensez à mettre à jour ce fichier et rebuild l'image après modifications
+
+# ============================================
+# FRAMEWORK WEB - FastAPI
+# ============================================
+# FastAPI : framework web moderne et performant pour créer des APIs REST
+# Inclut la validation automatique avec Pydantic
+fastapi[all]==0.122.0
+
+# Uvicorn : serveur ASGI haute performance pour exécuter FastAPI
+# standard : inclut les dépendances pour le hot-reload et les websockets
+uvicorn[standard]==0.38.0
