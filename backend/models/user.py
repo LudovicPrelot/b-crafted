@@ -140,7 +140,7 @@ class UserUpdate(BaseModel):
         max_length=100,
         description="Nouveau mot de passe"
     )
-    actif: Optional[bool] = Field(
+    is_active: Optional[bool] = Field(
         None,
         description="Statut actif/inactif du compte"
     )
@@ -168,7 +168,7 @@ class UserResponse(UserBase):
         ...,
         description="Identifiant unique de l'utilisateur"
     )
-    actif: bool = Field(
+    is_active: bool = Field(
         default=True,
         description="Indique si le compte est actif"
     )
@@ -194,7 +194,7 @@ class UserResponse(UserBase):
                 "pseudo": "JohnDoe",
                 "last_name": "Doe",
                 "first_name": "John",
-                "actif": True,
+                "is_active": True,
                 "administrateur": False,
                 "created_at": "2024-12-10T10:00:00",
                 "updated_at": "2024-12-10T10:00:00"
@@ -263,7 +263,7 @@ class Token(BaseModel):
                     "pseudo": "JohnDoe",
                     "last_name": "Doe",
                     "first_name": "John",
-                    "actif": True,
+                    "is_active": True,
                     "administrateur": False
                 }
             }
