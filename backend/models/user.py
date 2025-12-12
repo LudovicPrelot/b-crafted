@@ -17,41 +17,41 @@ class UserBase(BaseModel):
     """
     email: EmailStr = Field(
         ...,
-        description="Adresse email de l'utilisateur (unique)",
+        description="Email address of the user (unique)",
         examples=["john.doe@example.com"]
     )
-    pseudo: str = Field(
+    username: str = Field(
         ...,
         min_length=3,
         max_length=20,
-        description="Pseudo de l'utilisateur (unique, entre 3 et 20 caractères)",
+        description="Username of the user (unique, between 3 and 20 characters)",
         examples=["JohnDoe"]
-    )
-    last_name: str = Field(
-        ...,
-        min_length=2,
-        max_length=50,
-        description="Nom de famille de l'utilisateur",
-        examples=["Doe"]
     )
     first_name: str = Field(
         ...,
         min_length=2,
         max_length=50,
-        description="Prénom de l'utilisateur",
+        description="First name of the user",
         examples=["John"]
+    )
+    last_name: str = Field(
+        ...,
+        min_length=2,
+        max_length=50,
+        description="Last name of the user",
+        examples=["Doe"]
     )
     
     model_config = ConfigDict(from_attributes=True)
     
-    @field_validator('pseudo')
+    @field_validator('username')
     @classmethod
-    def validate_pseudo(cls, v: str) -> str:
+    def validate_username(cls, v: str) -> str:
         """
-        Valide que le pseudo ne contient que des caractères alphanumériques et underscores.
+        Validates that username contains only alphanumeric characters and underscores.
         """
         if not v.replace('_', '').isalnum():
-            raise ValueError('Le pseudo ne peut contenir que des lettres, chiffres et underscores')
+            raise ValueError('Username can only contain letters, numbers and underscores')
         return v
 
 
@@ -60,14 +60,14 @@ class UserBase(BaseModel):
 # ============================================
 class UserCreate(UserBase):
     """
-    Modèle pour la création d'un utilisateur (inscription).
-    Contient le mot de passe en clair (sera haché côté backend).
+    Model for user creation (registration).
+    Contains the password in plain text (will be hashed on backend side).
     """
     password: str = Field(
         ...,
         min_length=8,
         max_length=100,
-        description="Mot de passe de l'utilisateur (minimum 8 caractères)",
+        description="User password (minimum 8 characters)",
         examples=["MyS3cur3P@ssw0rd"]
     )
     
@@ -75,29 +75,29 @@ class UserCreate(UserBase):
     @classmethod
     def validate_password(cls, v: str) -> str:
         """
-        Valide la robustesse du mot de passe :
-        - Au moins 8 caractères
-        - Au moins une majuscule
-        - Au moins une minuscule
-        - Au moins un chiffre
+        Validates password strength:
+        - At least 8 characters
+        - At least one uppercase letter
+        - At least one lowercase letter
+        - At least one digit
         """
         if len(v) < 8:
-            raise ValueError('Le mot de passe doit contenir au moins 8 caractères')
+            raise ValueError('Password must contain at least 8 characters')
         if not any(c.isupper() for c in v):
-            raise ValueError('Le mot de passe doit contenir au moins une majuscule')
+            raise ValueError('Password must contain at least one uppercase letter')
         if not any(c.islower() for c in v):
-            raise ValueError('Le mot de passe doit contenir au moins une minuscule')
+            raise ValueError('Password must contain at least one lowercase letter')
         if not any(c.isdigit() for c in v):
-            raise ValueError('Le mot de passe doit contenir au moins un chiffre')
+            raise ValueError('Password must contain at least one digit')
         return v
     
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
                 "email": "john.doe@example.com",
-                "pseudo": "JohnDoe",
-                "last_name": "Doe",
+                "username": "JohnDoe",
                 "first_name": "John",
+                "last_name": "Doe",
                 "password": "MyS3cur3P@ssw0rd"
             }
         }
@@ -109,40 +109,40 @@ class UserCreate(UserBase):
 # ============================================
 class UserUpdate(BaseModel):
     """
-    Modèle pour la mise à jour d'un utilisateur.
-    Tous les champs sont optionnels pour permettre des mises à jour partielles.
+    Model for updating a user.
+    All fields are optional to allow partial updates.
     """
     email: Optional[EmailStr] = Field(
         None,
-        description="Nouvelle adresse email"
+        description="New email address"
     )
-    pseudo: Optional[str] = Field(
+    username: Optional[str] = Field(
         None,
         min_length=3,
         max_length=20,
-        description="Nouveau pseudo"
-    )
-    last_name: Optional[str] = Field(
-        None,
-        min_length=2,
-        max_length=50,
-        description="Nouveau nom"
+        description="New username"
     )
     first_name: Optional[str] = Field(
         None,
         min_length=2,
         max_length=50,
-        description="Nouveau prénom"
+        description="New first name"
+    )
+    last_name: Optional[str] = Field(
+        None,
+        min_length=2,
+        max_length=50,
+        description="New last name"
     )
     password: Optional[str] = Field(
         None,
         min_length=8,
         max_length=100,
-        description="Nouveau mot de passe"
+        description="New password"
     )
     is_active: Optional[bool] = Field(
         None,
-        description="Statut actif/inactif du compte"
+        description="Active/inactive account status"
     )
     
     model_config = ConfigDict(
@@ -150,7 +150,7 @@ class UserUpdate(BaseModel):
         json_schema_extra={
             "example": {
                 "email": "new.email@example.com",
-                "pseudo": "NewPseudo"
+                "username": "NewUsername"
             }
         }
     )
@@ -161,28 +161,32 @@ class UserUpdate(BaseModel):
 # ============================================
 class UserResponse(UserBase):
     """
-    Modèle pour la réponse API contenant les données d'un utilisateur.
-    Inclut l'ID et les timestamps, mais PAS le mot de passe.
+    Model for API response containing user data.
+    Includes ID, UUID and timestamps, but NOT the password.
     """
     id: int = Field(
         ...,
-        description="Identifiant unique de l'utilisateur"
+        description="Unique identifier of the user"
+    )
+    uuid: str = Field(
+        ...,
+        description="UUID of the user (for API security)"
     )
     is_active: bool = Field(
         default=True,
-        description="Indique si le compte est actif"
+        description="Indicates if the account is active"
     )
-    administrateur: bool = Field(
+    is_admin: bool = Field(
         default=False,
-        description="Indique si l'utilisateur est administrateur"
+        description="Indicates if the user is administrator"
     )
     created_at: datetime = Field(
         ...,
-        description="Date de création du compte"
+        description="Account creation date"
     )
     updated_at: datetime = Field(
         ...,
-        description="Date de dernière modification du compte"
+        description="Last account modification date"
     )
     
     model_config = ConfigDict(
@@ -190,12 +194,13 @@ class UserResponse(UserBase):
         json_schema_extra={
             "example": {
                 "id": 1,
+                "uuid": "123e4567-e89b-12d3-a456-426614174000",
                 "email": "john.doe@example.com",
-                "pseudo": "JohnDoe",
-                "last_name": "Doe",
+                "username": "JohnDoe",
                 "first_name": "John",
+                "last_name": "Doe",
                 "is_active": True,
-                "administrateur": False,
+                "is_admin": False,
                 "created_at": "2024-12-10T10:00:00",
                 "updated_at": "2024-12-10T10:00:00"
             }
@@ -208,17 +213,17 @@ class UserResponse(UserBase):
 # ============================================
 class UserLogin(BaseModel):
     """
-    Modèle pour la connexion d'un utilisateur.
-    Peut utiliser l'email OU le pseudo pour se connecter.
+    Model for user login.
+    Can use email OR username to login.
     """
     identifier: str = Field(
         ...,
-        description="Email ou pseudo de l'utilisateur",
+        description="Email or username of the user",
         examples=["john.doe@example.com", "JohnDoe"]
     )
     password: str = Field(
         ...,
-        description="Mot de passe de l'utilisateur"
+        description="User password"
     )
     
     model_config = ConfigDict(
@@ -236,20 +241,20 @@ class UserLogin(BaseModel):
 # ============================================
 class Token(BaseModel):
     """
-    Modèle pour la réponse après une authentification réussie.
-    Contient le token JWT et le type de token.
+    Model for response after successful authentication.
+    Contains JWT token and token type.
     """
     access_token: str = Field(
         ...,
-        description="Token JWT d'authentification"
+        description="JWT authentication token"
     )
     token_type: str = Field(
         default="bearer",
-        description="Type de token (toujours 'bearer')"
+        description="Token type (always 'bearer')"
     )
     user: UserResponse = Field(
         ...,
-        description="Informations de l'utilisateur connecté"
+        description="Logged in user information"
     )
     
     model_config = ConfigDict(
@@ -259,12 +264,13 @@ class Token(BaseModel):
                 "token_type": "bearer",
                 "user": {
                     "id": 1,
+                    "uuid": "123e4567-e89b-12d3-a456-426614174000",
                     "email": "john.doe@example.com",
-                    "pseudo": "JohnDoe",
-                    "last_name": "Doe",
+                    "username": "JohnDoe",
                     "first_name": "John",
+                    "last_name": "Doe",
                     "is_active": True,
-                    "administrateur": False
+                    "is_admin": False
                 }
             }
         }

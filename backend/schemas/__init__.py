@@ -27,7 +27,15 @@ Contenu futur :
 - recipe.py : Table recipes
 """
 
-# Pour l'instant, le fichier est vide
-# Les imports seront ajoutés au fur et à mesure de la création des fichiers
+# Import de la base et des mixins
+from .base import Base, TimestampMixin
 
-__all__ = []
+# Import du schéma User
+from .user import User
+
+# Liste des objets exportés par le module
+__all__ = [
+    "Base",
+    "TimestampMixin",
+    "User"
+]
