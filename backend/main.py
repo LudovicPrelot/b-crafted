@@ -88,4 +88,4 @@ if __name__ == "__main__":
     # host="0.0.0.0" : écoute sur toutes les interfaces réseau
     # port=8000 : port d'écoute
     # reload=True : active le hot-reload en développement
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=5000, reload=True)
