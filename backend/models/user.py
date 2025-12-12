@@ -27,14 +27,14 @@ class UserBase(BaseModel):
         description="Pseudo de l'utilisateur (unique, entre 3 et 20 caractères)",
         examples=["JohnDoe"]
     )
-    nom: str = Field(
+    last_name: str = Field(
         ...,
         min_length=2,
         max_length=50,
         description="Nom de famille de l'utilisateur",
         examples=["Doe"]
     )
-    prenom: str = Field(
+    first_name: str = Field(
         ...,
         min_length=2,
         max_length=50,
@@ -63,7 +63,7 @@ class UserCreate(UserBase):
     Modèle pour la création d'un utilisateur (inscription).
     Contient le mot de passe en clair (sera haché côté backend).
     """
-    mot_de_passe: str = Field(
+    password: str = Field(
         ...,
         min_length=8,
         max_length=100,
@@ -71,7 +71,7 @@ class UserCreate(UserBase):
         examples=["MyS3cur3P@ssw0rd"]
     )
     
-    @field_validator('mot_de_passe')
+    @field_validator('password')
     @classmethod
     def validate_password(cls, v: str) -> str:
         """
@@ -96,9 +96,9 @@ class UserCreate(UserBase):
             "example": {
                 "email": "john.doe@example.com",
                 "pseudo": "JohnDoe",
-                "nom": "Doe",
-                "prenom": "John",
-                "mot_de_passe": "MyS3cur3P@ssw0rd"
+                "last_name": "Doe",
+                "first_name": "John",
+                "password": "MyS3cur3P@ssw0rd"
             }
         }
     )
@@ -122,19 +122,19 @@ class UserUpdate(BaseModel):
         max_length=20,
         description="Nouveau pseudo"
     )
-    nom: Optional[str] = Field(
+    last_name: Optional[str] = Field(
         None,
         min_length=2,
         max_length=50,
         description="Nouveau nom"
     )
-    prenom: Optional[str] = Field(
+    first_name: Optional[str] = Field(
         None,
         min_length=2,
         max_length=50,
         description="Nouveau prénom"
     )
-    mot_de_passe: Optional[str] = Field(
+    password: Optional[str] = Field(
         None,
         min_length=8,
         max_length=100,
@@ -192,8 +192,8 @@ class UserResponse(UserBase):
                 "id": 1,
                 "email": "john.doe@example.com",
                 "pseudo": "JohnDoe",
-                "nom": "Doe",
-                "prenom": "John",
+                "last_name": "Doe",
+                "first_name": "John",
                 "actif": True,
                 "administrateur": False,
                 "created_at": "2024-12-10T10:00:00",
@@ -216,7 +216,7 @@ class UserLogin(BaseModel):
         description="Email ou pseudo de l'utilisateur",
         examples=["john.doe@example.com", "JohnDoe"]
     )
-    mot_de_passe: str = Field(
+    password: str = Field(
         ...,
         description="Mot de passe de l'utilisateur"
     )
@@ -225,7 +225,7 @@ class UserLogin(BaseModel):
         json_schema_extra={
             "example": {
                 "identifier": "john.doe@example.com",
-                "mot_de_passe": "MyS3cur3P@ssw0rd"
+                "password": "MyS3cur3P@ssw0rd"
             }
         }
     )
@@ -261,8 +261,8 @@ class Token(BaseModel):
                     "id": 1,
                     "email": "john.doe@example.com",
                     "pseudo": "JohnDoe",
-                    "nom": "Doe",
-                    "prenom": "John",
+                    "last_name": "Doe",
+                    "first_name": "John",
                     "actif": True,
                     "administrateur": False
                 }
