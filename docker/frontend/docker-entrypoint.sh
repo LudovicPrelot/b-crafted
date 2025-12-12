@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 WWW="/var/www"
 DIR="$WWW/app"
 NPM_VERSION=11.6.4
