@@ -1,5 +1,5 @@
 # backend/database/__init__.py
-# Point d'entrée du package `database`.
+# Point d'enZtrée du package `database`.
 # Module de gestion des connexions aux bases de données
 # Ce fichier permet d'importer le module database comme un package Python
 # Expose les fonctions utilitaires de `connection.py` au niveau du package

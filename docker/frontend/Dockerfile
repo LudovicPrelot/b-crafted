@@ -25,9 +25,18 @@ RUN rm -rf /etc/nginx/sites-enabled/default
 
 EXPOSE 80
 
-CMD service nginx -g "daemon off;"
+# Use exec form for CMD to avoid shell form duplication (lint rule)
+# Start nginx in the foreground so the container PID 1 remains nginx
+CMD ["nginx", "-g", "daemon off;"]
 
 COPY ./docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod -R 0777 /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
+RUN chmod 0755 /docker-entrypoint.sh
+
+# Normalize line endings in case the file was created on Windows (CRLF).
+# CRLF in the shebang can cause "no such file or directory" at runtime.
+# Use sed to remove CR carriage returns; sed is available in Debian base.
+RUN sed -i 's/\r$//' /docker-entrypoint.sh
+
+# Use exec form for ENTRYPOINT to avoid mixing shell and exec forms
+# The script uses `exec "$@"` to hand off to the CMD below
 ENTRYPOINT ["/docker-entrypoint.sh"]

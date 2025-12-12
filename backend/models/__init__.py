@@ -22,7 +22,22 @@ Contenu futur :
 - recipe.py : Modèles Recipe
 """
 
-# Pour l'instant, le fichier est vide
-# Les imports seront ajoutés au fur et à mesure de la création des fichiers
+# Import des modèles User
+from .user import (
+    UserBase,
+    UserCreate,
+    UserUpdate,
+    UserResponse,
+    UserLogin,
+    Token
+)
 
-__all__ = []
+# Liste des objets exportés par le module
+__all__ = [
+    "UserBase",
+    "UserCreate",
+    "UserUpdate",
+    "UserResponse",
+    "UserLogin",
+    "Token"
+]
