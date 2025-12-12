@@ -1,10 +1,13 @@
-# app/main.py
+# backend/main.py
 # Point d'entrée principal de l'API B'Craft'D
-# Ce fichier minimal permet de tester que le container fonctionne
+# Ce fichier configure FastAPI et les routes de base
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
+
+# Import de la fonction de test de connexion DB
+from database import check_db_connection, get_db_info
 
 # Création de l'instance FastAPI
 # title : nom affiché dans la documentation Swagger
@@ -21,7 +24,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     # Liste des origines autorisées (frontend en développement)
-    allow_origins=[os.getenv("API_BASE_URL")],
+    allow_origins=[os.getenv("API_BASE_URL", "http://localhost:5173")],
     # Autorise l'envoi de cookies et credentials
     allow_credentials=True,
     # Autorise toutes les méthodes HTTP (GET, POST, PUT, DELETE, etc.)
@@ -54,15 +57,25 @@ async def root():
 async def health_check():
     """
     Endpoint de health check.
-    Vérifie que l'API est opérationnelle.
+    Vérifie que l'API est opérationnelle et que la connexion DB fonctionne.
     
     Returns:
-        dict: Status de santé du service
+        dict: Status de santé du service et de la base de données
     """
+    # Test de la connexion PostgreSQL
+    db_connected = check_db_connection()
+    
+    # Récupération des infos de connexion (sans mot de passe)
+    db_info = get_db_info() if db_connected else None
+    
     return {
-        "status": "healthy",
+        "status": "healthy" if db_connected else "degraded",
         "service": "backend",
-        "database": "not_connected"  # TODO: vérifier connexion DB quand elle sera configurée
+        "database": {
+            "status": "connected" if db_connected else "disconnected",
+            "type": "PostgreSQL",
+            "info": db_info
+        }
     }
 
 

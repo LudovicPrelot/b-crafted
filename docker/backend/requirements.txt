@@ -12,3 +12,20 @@ fastapi[all]==0.122.0
 # Uvicorn : serveur ASGI haute performance pour exécuter FastAPI
 # standard : inclut les dépendances pour le hot-reload et les websockets
 uvicorn[standard]==0.38.0
+
+# ============================================
+# BASE DE DONNÉES - PostgreSQL
+# ============================================
+# SQLAlchemy : ORM (Object Relational Mapping) pour interagir avec PostgreSQL
+# Permet de manipuler la base de données avec des objets Python
+sqlalchemy==2.0.36
+
+# Psycopg2-binary : driver PostgreSQL pour Python
+# Version binaire (plus facile à installer que psycopg2)
+psycopg2-binary==2.9.10
+
+# ============================================
+# UTILITAIRES
+# ============================================
+# Python-dotenv : chargement des variables d'environnement depuis fichier .env
+python-dotenv==1.2.0
