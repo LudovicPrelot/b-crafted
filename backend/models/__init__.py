@@ -14,8 +14,11 @@ Les modèles Pydantic servent à :
 - Générer automatiquement la documentation OpenAPI/Swagger
 - Assurer la cohérence des types de données
 
+Contenu actuel :
+- user.py : Modèles User (UserCreate, UserUpdate, UserResponse, UserLogin, Token)
+- pagination.py : Modèles de pagination (PaginatedResponse, PaginationMetadata)
+
 Contenu futur :
-- user.py : Modèles User (UserCreate, UserUpdate, UserResponse)
 - character.py : Modèles Character
 - profession.py : Modèles Profession
 - resource.py : Modèles Resource
@@ -32,12 +35,24 @@ from .user import (
     Token
 )
 
+# Import des modèles de pagination
+from .pagination import (
+    PaginationMetadata,
+    PaginatedResponse,
+    create_paginated_response
+)
+
 # Liste des objets exportés par le module
 __all__ = [
+    # User models
     "UserBase",
     "UserCreate",
     "UserUpdate",
     "UserResponse",
     "UserLogin",
-    "Token"
+    "Token",
+    # Pagination models
+    "PaginationMetadata",
+    "PaginatedResponse",
+    "create_paginated_response"
 ]
