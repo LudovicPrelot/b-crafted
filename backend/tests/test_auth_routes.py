@@ -227,6 +227,49 @@ class TestVerifyToken:
 
 
 # ============================================
+# TESTS DÉCONNEXION (POST /auth/logout)
+# ============================================
+@pytest.mark.integration
+@pytest.mark.auth
+class TestLogout:
+    """Tests pour l'endpoint POST /auth/logout."""
+    
+    def test_logout_success(self, client: TestClient, auth_headers: dict, test_user):
+        """Déconnexion avec token valide doit réussir."""
+        response = client.post("/auth/logout", headers=auth_headers)
+        
+        assert response.status_code == 200
+        data = response.json()
+        
+        assert data["message"] == "Successfully logged out"
+        assert data["user_id"] == test_user.id
+        assert data["username"] == test_user.username
+    
+    def test_logout_no_token(self, client: TestClient):
+        """Déconnexion sans token doit échouer."""
+        response = client.post("/auth/logout")
+        
+        assert response.status_code == 401
+    
+    def test_logout_invalid_token(self, client: TestClient):
+        """Déconnexion avec token invalide doit échouer."""
+        headers = {"Authorization": "Bearer invalid.token.here"}
+        response = client.post("/auth/logout", headers=headers)
+        
+        assert response.status_code == 401
+    
+    def test_logout_inactive_user(self, client: TestClient, db, auth_headers: dict, test_user):
+        """Déconnexion avec compte inactif doit échouer."""
+        # Désactiver le compte
+        test_user.is_active = False
+        db.commit()
+        
+        response = client.post("/auth/logout", headers=auth_headers)
+        
+        assert response.status_code == 403
+
+
+# ============================================
 # TESTS WORKFLOW COMPLET
 # ============================================
 @pytest.mark.integration

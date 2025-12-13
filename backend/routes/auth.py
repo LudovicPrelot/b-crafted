@@ -368,3 +368,52 @@ async def verify_token(
         "username": current_user.username,
         "email": current_user.email
     }
+
+
+@router.post(
+    "/logout",
+    summary="Logout user",
+    description="Logout the current user (client-side token invalidation)"
+)
+async def logout(
+    current_user: Annotated[UserResponse, Depends(get_current_active_user)]
+) -> dict:
+    """
+    Déconnexion de l'utilisateur actuel.
+    
+    Note technique:
+    Avec JWT stateless, le token reste techniquement valide jusqu'à expiration.
+    Le logout est géré côté client en supprimant le token du stockage local.
+    
+    Cet endpoint confirme simplement la demande de déconnexion et permet
+    de logger l'événement si nécessaire (audit, analytics).
+    
+    Args:
+        current_user (UserResponse): Utilisateur authentifié
+        
+    Returns:
+        dict: Message de confirmation
+        
+    Exemple de requête:
+        POST /auth/logout
+        Headers:
+            Authorization: Bearer <token_jwt>
+            
+    Exemple de réponse:
+        {
+            "message": "Successfully logged out",
+            "user_id": 1,
+            "username": "john_doe"
+        }
+        
+    Côté client (JavaScript):
+        // Supprimer le token
+        localStorage.removeItem('access_token');
+        // ou
+        sessionStorage.removeItem('access_token');
+    """
+    return {
+        "message": "Successfully logged out",
+        "user_id": current_user.id,
+        "username": current_user.username
+    }
