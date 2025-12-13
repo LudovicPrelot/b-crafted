@@ -2,21 +2,21 @@
 # Configuration de la connexion PostgreSQL avec SQLAlchemy
 # Gestion des sessions et du connection pooling
 
-import os
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.pool import QueuePool
 from typing import Generator
+from config import settings
 
 # ============================================
 # VARIABLES D'ENVIRONNEMENT
 # ============================================
-# Récupération des variables d'environnement pour la connexion PostgreSQL
-POSTGRES_USER = os.getenv("POSTGRES_USER", "bcraftd_user")
-POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "bcraftd_password")
-POSTGRES_HOST = os.getenv("POSTGRES_HOST", "postgres")
-POSTGRES_PORT = os.getenv("POSTGRES_PORT", "5432")
-POSTGRES_DB = os.getenv("POSTGRES_DB", "bcraftd")
+# Récupération des variables d'environnement via la configuration centralisée
+POSTGRES_USER = settings.POSTGRES_USER
+POSTGRES_PASSWORD = settings.POSTGRES_PASSWORD
+POSTGRES_HOST = settings.POSTGRES_HOST
+POSTGRES_PORT = settings.POSTGRES_PORT
+POSTGRES_DB = settings.POSTGRES_DB
 
 # Construction de l'URL de connexion PostgreSQL
 # Format : postgresql://user:password@host:port/database
@@ -139,7 +139,7 @@ def check_db_connection() -> bool:
     try:
         # Teste la connexion avec une requête simple
         with engine.connect() as connection:
-            connection.execute("SELECT 1")
+            connection.execute(text("SELECT 1"))
         return True
     except Exception as e:
         print(f"Erreur de connexion PostgreSQL : {e}")

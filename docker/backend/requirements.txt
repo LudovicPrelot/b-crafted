@@ -24,8 +24,12 @@ sqlalchemy==2.0.36
 # Version binaire (plus facile à installer que psycopg2)
 psycopg2-binary==2.9.10
 
+# Alembic : outil de migration de base de données
+# Gère les versions du schéma de la base de données
+alembic==1.17.2
+
 # ============================================
 # UTILITAIRES
 # ============================================
-# Python-dotenv : chargement des variables d'environnement depuis fichier .env
+# Python-dotenv : chargement automatique des variables d'environnement depuis fichier .env
 python-dotenv==1.2.0

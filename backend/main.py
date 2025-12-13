@@ -4,10 +4,14 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import os
+from config import settings
+import sys
 
 # Import de la fonction de test de connexion DB
 from database import check_db_connection, get_db_info
+
+# Import de la fonction d'initialisation de la base de données
+from scripts.init_db import init_database
 
 # Création de l'instance FastAPI
 # title : nom affiché dans la documentation Swagger
@@ -24,7 +28,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     # Liste des origines autorisées (frontend en développement)
-    allow_origins=[os.getenv("API_BASE_URL", "http://localhost:5173")],
+    allow_origins=[settings.API_BASE_URL],
     # Autorise l'envoi de cookies et credentials
     allow_credentials=True,
     # Autorise toutes les méthodes HTTP (GET, POST, PUT, DELETE, etc.)
@@ -32,6 +36,47 @@ app.add_middleware(
     # Autorise tous les headers HTTP
     allow_headers=["*"],
 )
+
+
+# ============================================
+# ÉVÉNEMENTS DE DÉMARRAGE / ARRÊT
+# ============================================
+@app.on_event("startup")
+async def startup_event():
+    """
+    Événement exécuté au démarrage de l'application.
+    Initialise la base de données via init_database().
+    """
+    print("\n" + "=" * 60)
+    print("🚀 B'Craft'D API - Démarrage")
+    print("=" * 60 + "\n")
+    
+    # Appel de la fonction d'initialisation de la base de données
+    success = init_database()
+    
+    if not success:
+        print("\n❌ ERREUR : Échec de l'initialisation de la base de données")
+        print("💡 L'API ne peut pas démarrer sans base de données")
+        sys.exit(1)
+    
+    print("=" * 60)
+    print("✅ B'Craft'D API démarrée avec succès !")
+    print("📚 Documentation : " + settings.API_BASE_URL + "/docs")
+    print("=" * 60 + "\n")
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """
+    Événement exécuté à l'arrêt de l'application.
+    Nettoie les ressources si nécessaire.
+    """
+    print("\n👋 B'Craft'D API - Arrêt en cours...")
+
+
+# ============================================
+# ROUTES
+# ============================================
 
 
 # Route racine - endpoint de base pour tester que l'API fonctionne
