@@ -27,4 +27,9 @@ Contenu futur :
 # Pour l'instant, le fichier est vide
 # Les imports seront ajoutés au fur et à mesure de la création des fichiers
 
-__all__ = []
+from .auth import router as auth_router 
+from .users import router as users_router
+
+__all__ = [
+    "auth_router",
+    "users_router"]
