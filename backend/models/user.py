@@ -66,8 +66,7 @@ class UserCreate(UserBase):
     password: str = Field(
         ...,
         min_length=8,
-        max_length=100,
-        description="User password (minimum 8 characters)",
+        description="User password (minimum 8 characters, maximum 72 bytes for bcrypt)",
         examples=["MyS3cur3P@ssw0rd"]
     )
     
@@ -75,11 +74,7 @@ class UserCreate(UserBase):
     @classmethod
     def validate_password(cls, v: str) -> str:
         """
-        Validates password strength:
-        - At least 8 characters
-        - At least one uppercase letter
-        - At least one lowercase letter
-        - At least one digit
+        Validates password strength and truncates to 72 bytes for bcrypt.
         """
         if len(v) < 8:
             raise ValueError('Password must contain at least 8 characters')
@@ -89,7 +84,10 @@ class UserCreate(UserBase):
             raise ValueError('Password must contain at least one lowercase letter')
         if not any(c.isdigit() for c in v):
             raise ValueError('Password must contain at least one digit')
-        return v
+        
+        # Truncate to 72 bytes for bcrypt (silently, truncation also happens in hash_password)
+        password_bytes = v.encode('utf-8')[:72]
+        return password_bytes.decode('utf-8', errors='ignore')
     
     model_config = ConfigDict(
         json_schema_extra={
@@ -137,13 +135,35 @@ class UserUpdate(BaseModel):
     password: Optional[str] = Field(
         None,
         min_length=8,
-        max_length=100,
-        description="New password"
+        description="New password (will be truncated to 72 bytes for bcrypt)"
     )
     is_active: Optional[bool] = Field(
         None,
         description="Active/inactive account status"
     )
+    
+    @field_validator('password')
+    @classmethod
+    def validate_password(cls, v: Optional[str]) -> Optional[str]:
+        """
+        Validates password strength and truncates to 72 bytes for bcrypt.
+        Only runs if password is provided (not None).
+        """
+        if v is None:
+            return v
+        
+        if len(v) < 8:
+            raise ValueError('Password must contain at least 8 characters')
+        if not any(c.isupper() for c in v):
+            raise ValueError('Password must contain at least one uppercase letter')
+        if not any(c.islower() for c in v):
+            raise ValueError('Password must contain at least one lowercase letter')
+        if not any(c.isdigit() for c in v):
+            raise ValueError('Password must contain at least one digit')
+        
+        # Truncate to 72 bytes for bcrypt (truncation also happens in hash_password)
+        password_bytes = v.encode('utf-8')[:72]
+        return password_bytes.decode('utf-8', errors='ignore')
     
     model_config = ConfigDict(
         from_attributes=True,
@@ -189,6 +209,14 @@ class UserResponse(UserBase):
         description="Last account modification date"
     )
     
+    @field_validator('uuid', mode='before')
+    @classmethod
+    def convert_uuid_to_string(cls, v):
+        """Convert UUID object to string if necessary."""
+        if v is None:
+            return v
+        return str(v)
+    
     model_config = ConfigDict(
         from_attributes=True,
         json_schema_extra={
@@ -225,6 +253,15 @@ class UserLogin(BaseModel):
         ...,
         description="User password"
     )
+    
+    @field_validator('password')
+    @classmethod
+    def validate_password_length(cls, v: str) -> str:
+        """
+        Truncate password to 72 bytes to match bcrypt limitation.
+        """
+        password_bytes = v.encode('utf-8')[:72]
+        return password_bytes.decode('utf-8', errors='ignore')
     
     model_config = ConfigDict(
         json_schema_extra={

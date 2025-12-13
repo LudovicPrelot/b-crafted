@@ -29,6 +29,21 @@ psycopg2-binary==2.9.10
 alembic==1.17.2
 
 # ============================================
+# SÉCURITÉ - Authentification & JWT
+# ============================================
+# Passlib : bibliothèque de hachage de mots de passe
+# Supporte bcrypt, argon2, scrypt, etc.
+passlib==1.7.4
+
+# Bcrypt : hachage sécurisé des mots de passe
+# Version compatible avec la dernière version de passlib
+bcrypt==4.1.2
+
+# Python-jose : bibliothèque JWT (JSON Web Tokens)
+# Utilisée pour générer et vérifier les tokens d'authentification
+python-jose[cryptography]==3.3.0
+
+# ============================================
 # UTILITAIRES
 # ============================================
 # Python-dotenv : chargement automatique des variables d'environnement depuis fichier .env

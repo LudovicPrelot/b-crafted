@@ -11,6 +11,7 @@ from typing import Optional
 
 from alembic.config import Config
 from alembic import command
+from alembic.script import ScriptDirectory
 
 from database.connection import check_db_connection, get_db_info
 
@@ -27,6 +28,30 @@ def _alembic_config() -> Config:
     # S'assurer que l'URL utilisée par Alembic vient des variables d'environnement
     # Si DATABASE_URL est fournie via database/connection, on la laisse (optionnel)
     return cfg
+
+
+def _get_current_revision() -> Optional[str]:
+    """
+    Récupère la révision actuelle de la base de données.
+    
+    Returns:
+        str | None: ID de la révision courante ou None si aucune migration appliquée
+    """
+    try:
+        from alembic.runtime.migration import MigrationContext
+        from sqlalchemy import create_engine
+        from database.connection import DATABASE_URL
+
+        engine = create_engine(DATABASE_URL, poolclass=None)
+        
+        # Utilisation d'un context manager pour éviter les fuites de connexion
+        with engine.connect() as connection:
+            ctx = MigrationContext.configure(connection)
+            current_rev = ctx.get_current_revision()
+            return current_rev
+    except Exception as e:
+        print(f"⚠️  Erreur lors de la vérification de la révision : {e}")
+        return None
 
 
 def init_database() -> bool:
@@ -57,26 +82,26 @@ def init_database() -> bool:
     print("\n2️⃣  Vérification des migrations...")
     try:
         versions_dir = ALEMBIC_DIR / "versions"
-        # Crée le dossier versions si nécessaire et s'assure des droits en écriture
+        
+        # Crée le dossier versions si nécessaire
         if not versions_dir.exists():
             print(f"   ➕ Création du dossier de versions : {versions_dir}")
             versions_dir.mkdir(parents=True, exist_ok=True)
             try:
-                # Tentative de définir des permissions larges (rwxrwxr-x)
                 os.chmod(str(versions_dir), 0o775)
             except Exception:
-                # Si chmod échoue (ex : système de fichiers Windows), on ignore
                 pass
 
-        migration_files = list(versions_dir.glob("*.py"))
+        # Lister les fichiers de migration Python (exclure __pycache__)
+        migration_files = [
+            f for f in versions_dir.glob("*.py") 
+            if f.name != "__init__.py" and not f.name.startswith(".")
+        ]
 
         alembic_cfg = _alembic_config()
 
         if not migration_files:
             print("   ⚠️  Aucune migration détectée. Génération automatique...")
-            # Générer une migration initiale
-            # Alembic a besoin que le template (script.py.mako) existe dans alembic/
-            # On s'assure encore une fois que le dossier a les droits avant d'écrire
             try:
                 os.chmod(str(versions_dir), 0o775)
             except Exception:
@@ -86,41 +111,50 @@ def init_database() -> bool:
             print("✅ Migration initiale générée")
         else:
             print(f"   ✅ {len(migration_files)} migration(s) trouvée(s)")
+            for mf in migration_files:
+                print(f"      - {mf.name}")
+                
     except Exception as e:
         print(f"❌ Erreur lors de la vérification/génération des migrations : {e}")
         traceback.print_exc()
         return False
 
-    # 3) Appliquer les migrations
-    print("\n3️⃣  Application des migrations...")
+    # 3) Vérifier la révision actuelle AVANT d'appliquer les migrations
+    print("\n3️⃣  Vérification de l'état de la base de données...")
+    current_rev = _get_current_revision()
+    if current_rev:
+        print(f"   📌 Révision actuelle : {current_rev}")
+    else:
+        print("   📌 Aucune révision appliquée (base vierge)")
+
+    # 4) Appliquer les migrations
+    print("\n4️⃣  Application des migrations...")
     try:
-        # Recharger la config pour être sûr
         alembic_cfg = _alembic_config()
-        command.upgrade(alembic_cfg, "head")
-        print("✅ Migrations appliquées avec succès")
+        
+        # Vérifier la révision HEAD (dernière migration disponible)
+        script = ScriptDirectory.from_config(alembic_cfg)
+        head_rev = script.get_current_head()
+        
+        if current_rev == head_rev:
+            print(f"✅ Base de données déjà à jour (revision: {current_rev})")
+        else:
+            print(f"   🔄 Migration de {current_rev or 'base'} vers {head_rev}...")
+            command.upgrade(alembic_cfg, "head")
+            print("✅ Migrations appliquées avec succès")
+            
     except Exception as e:
         print(f"❌ Erreur lors de l'exécution des migrations : {e}")
         traceback.print_exc()
         return False
 
-    # 4) Vérification finale de la révision
-    print("\n4️⃣  Vérification finale...")
-    try:
-        from alembic.runtime.migration import MigrationContext
-        from sqlalchemy import create_engine
-        from database.connection import DATABASE_URL
-
-        engine = create_engine(DATABASE_URL)
-        with engine.connect() as connection:
-            ctx = MigrationContext.configure(connection)
-            current_rev = ctx.get_current_revision()
-            if current_rev:
-                print(f"✅ Base de données à jour (revision: {current_rev})")
-            else:
-                print("⚠️  Aucune migration appliquée")
-    except Exception as e:
-        print(f"⚠️  Impossible de vérifier la version : {e}")
-        traceback.print_exc()
+    # 5) Vérification finale de la révision
+    print("\n5️⃣  Vérification finale...")
+    final_rev = _get_current_revision()
+    if final_rev:
+        print(f"✅ Base de données à jour (revision: {final_rev})")
+    else:
+        print("⚠️  Aucune migration appliquée")
 
     print("\n" + "=" * 60)
     print("✅ Initialisation terminée !")
@@ -130,14 +164,23 @@ def init_database() -> bool:
 
 def reset_database() -> bool:
     """Reset complet (dev): downgrade to base then upgrade head."""
+    print("🔄 RESET DATABASE - Suppression et recréation de toutes les tables")
+    print("⚠️  Cette opération va SUPPRIMER toutes les données !")
+    
     try:
         alembic_cfg = _alembic_config()
-        print("🔄 Downgrade vers base (suppression des tables)...")
+        
+        print("\n1️⃣  Downgrade vers base (suppression des tables)...")
         command.downgrade(alembic_cfg, "base")
-        print("🔄 Upgrade vers head (recréation)...")
+        print("✅ Tables supprimées")
+        
+        print("\n2️⃣  Upgrade vers head (recréation)...")
         command.upgrade(alembic_cfg, "head")
-        print("✅ Reset effectué")
+        print("✅ Tables recréées")
+        
+        print("\n✅ Reset effectué avec succès")
         return True
+        
     except Exception as e:
         print(f"❌ Erreur lors du reset : {e}")
         traceback.print_exc()
