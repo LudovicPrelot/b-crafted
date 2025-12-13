@@ -14,7 +14,7 @@ from database import check_db_connection, get_db_info
 from scripts.init_db import init_database
 
 # Import des routes
-from routes.auth import router as auth_router
+from routes import auth_router, users_router
 
 # Création de l'instance FastAPI
 # title : nom affiché dans la documentation Swagger
@@ -82,6 +82,9 @@ async def shutdown_event():
 # ============================================
 # Routes d'authentification (/auth)
 app.include_router(auth_router)
+
+# Routes utilisateurs (/users)
+app.include_router(users_router)
 
 
 # ============================================

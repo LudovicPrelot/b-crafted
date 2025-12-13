@@ -48,3 +48,18 @@ python-jose[cryptography]==3.3.0
 # ============================================
 # Python-dotenv : chargement automatique des variables d'environnement depuis fichier .env
 python-dotenv==1.2.0
+
+# ============================================
+# TESTS - Development only
+# ============================================
+# Pytest : framework de tests unitaires
+pytest==8.3.4
+
+# Pytest-cov : plugin de couverture de code
+pytest-cov==6.0.0
+
+# Pytest-asyncio : support tests asynchrones
+pytest-asyncio==0.24.0
+
+# HTTP Request mock pour tests
+httpx==0.28.1

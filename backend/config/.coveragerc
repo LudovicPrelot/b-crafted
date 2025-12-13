@@ -1,0 +1,51 @@
+# backend/config/.coveragerc
+# Configuration de la couverture de code (coverage.py)
+# Définit quels fichiers inclure/exclure du rapport
+
+[run]
+# Répertoires à analyser
+source = .
+
+# Fichiers à omettre de la couverture
+omit =
+    # Tests eux-mêmes
+    tests/*
+    # Migrations Alembic
+    alembic/*
+    # Configuration
+    config/*
+    # Scripts utilitaires
+    scripts/*
+    # Environnements virtuels
+    venv/*
+    .venv/*
+    env/*
+    # Cache Python
+    *__pycache__*
+    *.pyc
+    # Fichiers de configuration
+    setup.py
+    conftest.py
+
+[report]
+# Ne pas afficher les fichiers avec 100% de couverture
+skip_covered = False
+
+# Afficher les lignes manquantes
+show_missing = True
+
+# Ignorer les erreurs sur les fichiers manquants
+ignore_errors = True
+
+# Seuils de couverture (optionnel)
+# fail_under = 70
+
+# Précision des pourcentages
+precision = 2
+
+[html]
+# Répertoire de sortie du rapport HTML
+directory = htmlcov
+
+# Titre du rapport
+title = B'Craft'D Backend - Coverage Report
