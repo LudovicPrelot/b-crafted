@@ -13,6 +13,9 @@ from database import check_db_connection, get_db_info
 # Import de la fonction d'initialisation de la base de données
 from scripts.init_db import init_database
 
+# Import des routes
+from routes.auth import router as auth_router
+
 # Création de l'instance FastAPI
 # title : nom affiché dans la documentation Swagger
 # description : description du projet
@@ -75,10 +78,15 @@ async def shutdown_event():
 
 
 # ============================================
-# ROUTES
+# INCLUSION DES ROUTES
 # ============================================
+# Routes d'authentification (/auth)
+app.include_router(auth_router)
 
 
+# ============================================
+# ROUTES DE BASE
+# ============================================
 # Route racine - endpoint de base pour tester que l'API fonctionne
 @app.get("/")
 async def root():
@@ -93,7 +101,11 @@ async def root():
         "message": "Bienvenue sur l'API B'Craft'D !",
         "status": "running",
         "version": "0.1.0",
-        "docs": "/docs"  # Lien vers la documentation Swagger
+        "docs": "/docs",  # Lien vers la documentation Swagger
+        "endpoints": {
+            "auth": "/auth",
+            "health": "/health"
+        }
     }
 
 
@@ -131,6 +143,6 @@ if __name__ == "__main__":
     
     # Démarre le serveur Uvicorn
     # host="0.0.0.0" : écoute sur toutes les interfaces réseau
-    # port=8000 : port d'écoute
+    # port=5000 : port d'écoute (défini dans .env)
     # reload=True : active le hot-reload en développement
     uvicorn.run("main:app", host="0.0.0.0", port=5000, reload=True)
